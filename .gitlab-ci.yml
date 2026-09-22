@@ -11,7 +11,8 @@ build_image:
   stage: build
   image: docker:24.0.7
   services:
-    - docker:24.0.7-dind
+    - name: docker:24.0.7-dind
+      command: ["--insecure-registry=registry.minikube.local"]
   variables:
     DOCKER_TLS_CERTDIR: ""
   rules:
