@@ -12,7 +12,8 @@ build_image:
   image: docker:24.0.7
   services:
     - name: docker:24.0.7-dind
-      command: ["--insecure-registry=registry.minikube.local"]
+      command:
+        ["dockerd-entrypoint.sh", "--insecure-registry=registry.minikube.local"]
   variables:
     DOCKER_TLS_CERTDIR: ""
   rules:
