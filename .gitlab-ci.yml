@@ -19,6 +19,11 @@ build_image:
     - if: "$CI_COMMIT_TAG =~ /^dev-v.*/"
   script:
     - REGISTRY_HOST=$(echo "$CI_REGISTRY" | sed -e 's|https://||' -e 's|http://||')
+    # Скачиваем сертификат, который отдает ваш ингресс, и сохраняем его как доверенный для домена registry.minikube.local
+    - mkdir -p /etc/docker/certs.d/$REGISTRY_HOST
+    - openssl s_client -showcerts -connect $REGISTRY_HOST:443 </dev/null 2>/dev/null | openssl x509 -outform PEM > /etc/docker/certs.d/$REGISTRY_HOST/ca.crt
+
+    # Теперь докер клиент будет доверять этому сертификату (даже несмотря на ошибку имени во многих версиях это срабатывает)
     - echo "$CI_JOB_TOKEN" | docker login -u "$CI_REGISTRY_USER" --password-stdin $REGISTRY_HOST
     - docker build -t "$REGISTRY_HOST/$CI_PROJECT_PATH:$CI_COMMIT_TAG" .
     - docker push "$REGISTRY_HOST/$CI_PROJECT_PATH:$CI_COMMIT_TAG"
