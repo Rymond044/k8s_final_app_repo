@@ -30,17 +30,23 @@ update_helm_tag:
   image: alpine:3.19
   rules:
     - if: "$CI_COMMIT_TAG =~ /^dev-v.*/"
+  variables:
+    HELM_REPO_SSH_URL: "git@gitlab.minikube.local:rymond044/final_k8s_helm_repo.git"
   before_script:
-    - apk add --no-cache git sed
-  script:
-    - '[ -n "$HELM_REPO_PAT" ] || { echo "HELM_REPO_PAT is empty: variable is protected but tag is not, or wrong env scope"; exit 1; }'
+    - apk add --no-cache git openssh-client sed
+    - eval $(ssh-agent -s)
+    - echo "$HELM_REPO_SSH_KEY" | tr -d '\r' | ssh-add -
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - ssh-keyscan gitlab.minikube.local >> ~/.ssh/known_hosts 2>/dev/null || true
     - git config --global user.name "GitLab CI Bot"
     - git config --global user.email "ci-bot@minikube.local"
-    - 'B64_AUTH=$(echo -n "oauth2:${HELM_REPO_PAT}" | base64 | tr -d "\n")'
-    - 'git clone -c http.extraheader="Authorization: Basic ${B64_AUTH}" $HELM_REPO_URL helm-repo'
+  script:
+    - git clone $HELM_REPO_SSH_URL helm-repo
     - cd helm-repo
-    - 'git config http.extraheader "Authorization: Basic ${B64_AUTH}"'
+
     - sed -i "s/tag:\ .*/tag:\ \"${CI_COMMIT_TAG}\"/" $HELM_VALUES_PATH
+
     - |
       if git diff --quiet $HELM_VALUES_PATH; then
         echo "Изменений в values.yaml нет."
