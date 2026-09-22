@@ -12,19 +12,30 @@ build_image:
   image: docker:24.0.7
   services:
     - name: docker:24.0.7-dind
-      command: ["--insecure-registry=registry.minikube.local"]
+      # Намеренно не используем command, так как K8s executor его часто затирает
   variables:
     DOCKER_TLS_CERTDIR: ""
+    # Передаем настройки прямо в Docker-демон через переменные окружения
+    DOCKER_DRIVER: overlay2
   rules:
     - if: "$CI_COMMIT_TAG =~ /^dev-v.*/"
+  before_script:
+    # Ждем пару секунд, пока dind-сервис внутри Pod полностью поднимется
+    - sleep 5
   script:
+    # 1. Извлекаем чистый хост
     - REGISTRY_HOST=$(echo "$CI_REGISTRY" | sed -e 's|https://||' -e 's|http://||')
-    # Скачиваем сертификат, который отдает ваш ингресс, и сохраняем его как доверенный для домена registry.minikube.local
-    - mkdir -p /etc/docker/certs.d/$REGISTRY_HOST
-    - openssl s_client -showcerts -connect $REGISTRY_HOST:443 </dev/null 2>/dev/null | openssl x509 -outform PEM > /etc/docker/certs.d/$REGISTRY_HOST/ca.crt
 
-    # Теперь докер клиент будет доверять этому сертификату (даже несмотря на ошибку имени во многих версиях это срабатывает)
-    - echo "$CI_JOB_TOKEN" | docker login -u "$CI_REGISTRY_USER" --password-stdin $REGISTRY_HOST
+    # 2. Динамически создаем конфиг для Docker-клиента и демона прямо перед логином.
+    # Так как у контейнеров в одном Pod общая сеть (localhost), мы настраиваем локальный докер.
+    - mkdir -p /etc/docker
+    - echo "{\"insecure-registries\":[\"${REGISTRY_HOST}\", \"registry.minikube.local\"]}" > /etc/docker/daemon.json
+
+    # 3. Самый надежный костыль для клиента: принудительно заставляем docker login
+    # думать, что мы ломимся по HTTP, если не хотим импортировать сертификаты
+    - echo "$CI_JOB_TOKEN" | docker login -u "$CI_REGISTRY_USER" --password-stdin http://$REGISTRY_HOST
+
+    # 4. Сборка и отправка
     - docker build -t "$REGISTRY_HOST/$CI_PROJECT_PATH:$CI_COMMIT_TAG" .
     - docker push "$REGISTRY_HOST/$CI_PROJECT_PATH:$CI_COMMIT_TAG"
 
