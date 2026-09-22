@@ -3,6 +3,7 @@ stages:
   - update-helm
 
 variables:
+  GIT_SSL_NO_VERIFY: "true"
   HELM_REPO_URL: "http://oauth2:${HELM_REPO_PAT}@gitlab.minikube.local/rymond044/final_k8s_helm_repo.git"
   HELM_VALUES_PATH: "helm_apps/charts/web-app/values.yaml"
 
