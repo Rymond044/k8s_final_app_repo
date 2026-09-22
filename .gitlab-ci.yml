@@ -33,6 +33,7 @@ update_helm_tag:
   before_script:
     - apk add --no-cache git sed
   script:
+    - '[ -n "$HELM_REPO_PAT" ] || { echo "HELM_REPO_PAT is empty: variable is protected but tag is not, or wrong env scope"; exit 1; }'
     - git config --global user.name "GitLab CI Bot"
     - git config --global user.email "ci-bot@minikube.local"
 
