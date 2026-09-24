@@ -21,7 +21,7 @@ HTML_TEMPLATE = """
 </head>
 <body>
     <div class="card">
-        <h1>🚀 Web Application v2.2.2</h1>
+        <h1>🚀 Web Application v2.3.0</h1>
         <p>Приложение запущено за Nginx реверс-прокси</p>
         <div class="secret-box">
             <div class="secret-title">Загруженный секрет (Secret Manager / K8s Secret):</div>
