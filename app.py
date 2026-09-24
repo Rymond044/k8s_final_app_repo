@@ -8,7 +8,7 @@ HTML_TEMPLATE = """
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Web Application version 2.2.1</title>
+    <title>Web Application version </title>
     <style>
         body { font-family: Arial, sans-serif; background-color: #f4f6f9; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
         .card { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; max-width: 500px; width: 100%; }
@@ -21,7 +21,7 @@ HTML_TEMPLATE = """
 </head>
 <body>
     <div class="card">
-        <h1>🚀 Web Application</h1>
+        <h1>🚀 Web Application v2.2.2</h1>
         <p>Приложение запущено за Nginx реверс-прокси</p>
         <div class="secret-box">
             <div class="secret-title">Загруженный секрет (Secret Manager / K8s Secret):</div>
